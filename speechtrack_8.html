@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SpeechTrack">
+<title>SpeechTrack</title>
+<style>
+:root {
+  --green:#3B6D11;--green-light:#EAF3DE;--green-mid:#C0DD97;--green-dark:#27500A;
+  --purple-light:#CECBF6;--purple-dark:#3C3489;
+  --teal-light:#9FE1CB;--teal-dark:#085041;
+  --amber-light:#FAC775;--amber-dark:#633806;--amber-mid:#BA7517;
+  --blue-light:#E6F1FB;--blue-dark:#185FA5;
+  --red-light:#FCEBEB;--red-dark:#A32D2D;
+  --bg:#f5f4f0;--surface:#ffffff;--border:rgba(0,0,0,0.1);
+  --border-strong:rgba(0,0,0,0.2);--text:#1a1a1a;--text2:#555;--text3:#888;
+  --r:10px;--rl:14px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#111;--surface:#1e1e1e;--border:rgba(255,255,255,0.1);--border-strong:rgba(255,255,255,0.2);--text:#f0f0f0;--text2:#aaa;--text3:#666;}
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;}
+.app{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;height:100%;height:-webkit-fill-available;background:var(--surface);}
+.topbar{padding:14px 16px 10px;padding-top:max(14px,env(safe-area-inset-top));background:var(--surface);border-bottom:0.5px solid var(--border);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;position:sticky;top:0;z-index:20;}
+.logo{font-size:17px;font-weight:700;color:var(--green);letter-spacing:-0.3px;-webkit-flex:1;flex:1;}
+.logo span{font-weight:400;color:var(--text3);font-size:12px;margin-left:4px;}
+.btn{padding:9px 14px;border:1px solid var(--border-strong);border-radius:var(--r);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px;display:-webkit-inline-flex;display:inline-flex;-webkit-align-items:center;align-items:center;gap:6px;font-family:inherit;white-space:nowrap;-webkit-appearance:none;appearance:none;}
+.btn:active{opacity:0.7;}
+.btn.primary{background:var(--green);color:var(--green-light);border-color:var(--green);}
+.btn.icon{padding:9px;}
+.btn.sm{padding:6px 10px;font-size:12px;}
+.btn.danger{background:var(--red-light);color:var(--red-dark);border-color:var(--red-dark);}
+.btn.full{width:100%;-webkit-justify-content:center;justify-content:center;display:-webkit-flex;display:flex;}
+.content{-webkit-flex:1;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;}
+.bottom-nav{background:var(--surface);border-top:0.5px solid var(--border);display:-webkit-flex;display:flex;-webkit-justify-content:space-around;justify-content:space-around;padding:8px 0;padding-bottom:max(10px,env(safe-area-inset-bottom));}
+.bnav{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-align-items:center;align-items:center;gap:3px;padding:4px 20px;cursor:pointer;color:var(--text3);font-size:11px;border:none;background:none;font-family:inherit;}
+.bnav svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.bnav.active{color:var(--green);font-weight:600;}
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:14px;margin-bottom:12px;}
+.card h3{font-size:14px;font-weight:600;margin-bottom:12px;padding-bottom:10px;border-bottom:0.5px solid var(--border);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:8px;}
+.patient-grid{display:-webkit-flex;display:flex;-webkit-flex-wrap:wrap;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
+.pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:12px;cursor:pointer;width:calc(50% - 5px);}
+@media(min-width:600px){.pcard{width:calc(33.33% - 7px);}}
+@media(min-width:800px){.pcard{width:calc(25% - 8px);}}
+.av{border-radius:50%;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;font-weight:600;}
+.av0{background:var(--green-mid);color:var(--green-dark);}
+.av1{background:var(--purple-light);color:var(--purple-dark);}
+.av2{background:var(--teal-light);color:var(--teal-dark);}
+.av3{background:var(--amber-light);color:var(--amber-dark);}
+.av4{background:#F5C4B3;color:#712B13;}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;}
+.bg{background:var(--green-light);color:var(--green);}
+.ba{background:#FAEEDA;color:var(--amber-dark);}
+.br{background:var(--red-light);color:var(--red-dark);}
+.bb{background:var(--blue-light);color:var(--blue-dark);}
+.bgr{background:#f0f0f0;color:#555;}
+.tab-bar{display:-webkit-flex;display:flex;gap:4px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab{padding:7px 14px;border-radius:var(--r);font-size:13px;cursor:pointer;color:var(--text2);background:none;border:1px solid transparent;white-space:nowrap;-webkit-flex-shrink:0;flex-shrink:0;font-family:inherit;-webkit-appearance:none;appearance:none;}
+.tab.active{background:var(--green-light);color:var(--green);font-weight:600;border-color:var(--green-mid);}
+.form-row{margin-bottom:14px;}
+.form-row label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;}
+.form-row input,.form-row textarea,.form-row select{width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:var(--r);background:var(--bg);color:var(--text);font-size:15px;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none;}
+.form-row textarea{resize:vertical;min-height:90px;}
+.form-row input:focus,.form-row textarea:focus,.form-row select:focus{border-color:var(--green);}
+.note-item{padding:12px 0;border-bottom:0.5px solid var(--border);}
+.note-item:last-child{border-bottom:none;}
+.note-date{font-size:11px;color:var(--text3);margin-bottom:4px;}
+.note-body{font-size:14px;line-height:1.6;margin-bottom:6px;white-space:pre-wrap;}
+.tags{display:-webkit-flex;display:flex;-webkit-flex-wrap:wrap;flex-wrap:wrap;gap:4px;}
+.tag{padding:2px 8px;border-radius:20px;font-size:11px;background:var(--bg);color:var(--text2);border:0.5px solid var(--border);}
+.rem-item{display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:0.5px solid var(--border);}
+.rem-item:last-child{border-bottom:none;}
+.rdot{width:9px;height:9px;border-radius:50%;margin-top:5px;-webkit-flex-shrink:0;flex-shrink:0;}
+.rdg{background:var(--green);}
+.rda{background:var(--amber-mid);}
+.rdr{background:#E24B4A;}
+.pay-item{padding:11px 0;border-bottom:0.5px solid var(--border);}
+.pay-item:last-child{border-bottom:none;}
+.pay-top{display:-webkit-flex;display:flex;-webkit-justify-content:space-between;justify-content:space-between;-webkit-align-items:center;align-items:center;}
+.pay-sub{display:-webkit-flex;display:flex;-webkit-justify-content:space-between;justify-content:space-between;-webkit-align-items:center;align-items:center;margin-top:4px;-webkit-flex-wrap:wrap;flex-wrap:wrap;gap:6px;}
+.metrics{display:-webkit-flex;display:flex;gap:10px;margin-bottom:14px;}
+.metric{background:var(--bg);border-radius:var(--r);padding:12px;-webkit-flex:1;flex:1;}
+.metric-label{font-size:11px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em;}
+.metric-val{font-size:18px;font-weight:700;}
+.goal-item{display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);font-size:14px;line-height:1.5;}
+.goal-item:last-child{border-bottom:none;}
+.gcheck{width:22px;height:22px;min-width:22px;border-radius:5px;border:1.5px solid var(--border-strong);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;cursor:pointer;font-size:13px;background:var(--surface);}
+.gcheck.done{background:var(--green-mid);border-color:var(--green);color:var(--green-dark);}
+.doc-item{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;padding:10px;border-radius:var(--r);border:0.5px solid var(--border);margin-bottom:8px;}
+.doc-icon{width:34px;height:34px;min-width:34px;border-radius:8px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;font-size:18px;}
+.modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:200;display:-webkit-flex;display:flex;-webkit-align-items:flex-end;align-items:flex-end;-webkit-justify-content:center;justify-content:center;}
+@media(min-width:600px){.modal-bg{-webkit-align-items:center;align-items:center;}}
+.modal{background:var(--surface);border-radius:var(--rl) var(--rl) 0 0;padding:22px 18px;padding-bottom:max(22px,env(safe-area-inset-bottom));width:100%;max-width:560px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+@media(min-width:600px){.modal{border-radius:var(--rl);}}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:18px;}
+.modal-actions{display:-webkit-flex;display:flex;gap:10px;margin-top:18px;}
+.modal-actions .btn{-webkit-flex:1;flex:1;-webkit-justify-content:center;justify-content:center;}
+.ph{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:12px;padding:14px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);margin-bottom:14px;}
+.sec{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;}
+.empty{text-align:center;padding:40px 16px;color:var(--text3);font-size:14px;}
+.divider{height:0.5px;background:var(--border);margin:14px 0;}
+.action-row{display:-webkit-flex;display:flex;gap:8px;margin-top:12px;-webkit-flex-wrap:wrap;flex-wrap:wrap;}
+.sync-bar{padding:7px 16px;font-size:12px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:8px;border-bottom:0.5px solid var(--border);background:var(--bg);color:var(--text2);}
+.sync-dot{width:7px;height:7px;min-width:7px;border-radius:50%;background:var(--text3);}
+.sync-dot.synced{background:var(--green);}
+.sync-dot.syncing{background:var(--amber-mid);animation:pulse 1s infinite;}
+.sync-dot.error{background:#E24B4A;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="logo">SpeechTrack<span>therapy records</span></div>
+    <button class="btn icon" onclick="showSync()" title="Sync">
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    </button>
+    <button class="btn primary" id="add-btn" onclick="handleAdd()">
+      <span style="font-size:18px;line-height:1;margin-right:2px">+</span>
+      <span id="add-label">Patient</span>
+    </button>
+  </div>
+  <div class="sync-bar">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-status">Not connected to Google Drive</span>
+    <div style="flex:1"></div>
+    <button class="btn sm" id="sync-connect-btn" onclick="showSync()">Connect Drive</button>
+  </div>
+  <div class="content" id="main-content"></div>
+  <div class="bottom-nav">
+    <button class="bnav active" id="bnav-patients" onclick="setView('patients')">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Patients
+    </button>
+    <button class="bnav" id="bnav-reminders" onclick="setView('reminders')">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Reminders
+    </button>
+    <button class="bnav" id="bnav-payments" onclick="setView('payments')">
+      <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Payments
+    </button>
+  </div>
+</div>
+<div id="modal-root"></div>
+
+<script>
+var CURRENCIES = ['EUR','USD','AED'];
+var SYM = {EUR:'€', USD:'$', AED:'AED '};
+var AVC = ['av0','av1','av2','av3','av4'];
+
+var db = {patients:[], version:1};
+var currentView = 'patients';
+var selectedPatient = null;
+var currentTab = 'notes';
+var syncStatus = 'disconnected';
+
+function fmt(a,c){ return SYM[c] + Number(a).toLocaleString(); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function initials(n){ return n.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0].toUpperCase();}).join('').slice(0,2); }
+function avc(i){ return AVC[i % AVC.length]; }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function el(id){ return document.getElementById(id); }
+
+// ── STORAGE ────────────────────────────────────────────────────────────────
+function saveLocal(){
+  try{ localStorage.setItem('st_db', JSON.stringify(db)); }catch(e){}
+}
+function loadLocal(){
+  try{
+    var raw = localStorage.getItem('st_db');
+    if(raw){ var parsed = JSON.parse(raw); if(parsed && parsed.patients){ db = parsed; } }
+  }catch(e){}
+}
+function save(){ saveLocal(); pushToDrive(); }
+
+// ── GOOGLE DRIVE ───────────────────────────────────────────────────────────
+var gapiReady = false;
+var driveFileId = null;
+var CLIENT_ID = '813779824656-k88dd1qk5ntpem1qv5gt567sde7ciu2g.apps.googleusercontent.com';
+var FILE_NAME = 'speechtrack_data.json';
+
+function setSyncUI(state, msg){
+  syncStatus = state;
+  var dot = el('sync-dot');
+  var txt = el('sync-status');
+  var btn = el('sync-connect-btn');
+  dot.className = 'sync-dot' + (state==='synced'?' synced':state==='syncing'?' syncing':state==='error'?' error':'');
+  txt.textContent = msg;
+  btn.style.display = (state==='synced'||state==='syncing') ? 'none' : '';
+}
+
+function loadGapi(cb){
+  if(window.gapi){ gapi.load('client:auth2', cb); return; }
+  var s = document.createElement('script');
+  s.src = 'https://apis.google.com/js/api.js';
+  s.onload = function(){ gapi.load('client:auth2', cb); };
+  document.head.appendChild(s);
+}
+
+function connectDrive(){
+  setSyncUI('syncing','Connecting…');
+  loadGapi(function(){
+    gapi.client.init({
+      clientId: CLIENT_ID,
+      scope: 'https://www.googleapis.com/auth/drive.appdata',
+      discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+    }).then(function(){
+      gapiReady = true;
+      var auth = gapi.auth2.getAuthInstance();
+      if(auth.isSignedIn.get()){ syncFromDrive(); }
+      else { auth.signIn().then(function(){ syncFromDrive(); }).catch(function(e){ setSyncUI('error','Sign-in cancelled'); }); }
+    }).catch(function(e){ setSyncUI('error','Setup failed — check client ID'); console.error(e); });
+  });
+}
+
+function syncFromDrive(){
+  setSyncUI('syncing','Syncing…');
+  gapi.client.drive.files.list({spaces:'appDataFolder',fields:'files(id,name)',q:"name='"+FILE_NAME+"'"})
+  .then(function(res){
+    var files = res.result.files;
+    if(files.length > 0){
+      driveFileId = files[0].id;
+      return gapi.client.drive.files.get({fileId:driveFileId, alt:'media'});
+    } else { return pushToDrive(); }
+  }).then(function(res){
+    if(res && res.body){
+      try{ var remote = JSON.parse(res.body); if(remote && remote.patients){ db = remote; saveLocal(); render(); } }catch(e){}
+    }
+    setSyncUI('synced','Synced · '+new Date().toLocaleTimeString());
+  }).catch(function(e){ setSyncUI('error','Sync failed'); console.error(e); });
+}
+
+function pushToDrive(){
+  if(!gapiReady){ return; }
+  try{
+    var auth = gapi.auth2.getAuthInstance();
+    if(!auth || !auth.isSignedIn.get()){ return; }
+    setSyncUI('syncing','Saving…');
+    var content = JSON.stringify(db);
+    var boundary = 'st_boundary_xyz';
+    var meta = {name:FILE_NAME, parents:['appDataFolder']};
+    var body = '--'+boundary+'\r\nContent-Type: application/json\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+boundary+'\r\nContent-Type: application/json\r\n\r\n'+content+'\r\n--'+boundary+'--';
+    var method = driveFileId ? 'PATCH' : 'POST';
+    var url = driveFileId
+      ? 'https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=multipart'
+      : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    var token = auth.currentUser.get().getAuthResponse().access_token;
+    fetch(url,{method:method,headers:{'Authorization':'Bearer '+token,'Content-Type':'multipart/related; boundary='+boundary},body:body})
+    .then(function(r){ return r.json(); })
+    .then(function(j){ if(j.id) driveFileId=j.id; setSyncUI('synced','Saved · '+new Date().toLocaleTimeString()); })
+    .catch(function(e){ setSyncUI('error','Save failed'); });
+  }catch(e){ setSyncUI('error','Save failed'); }
+}
+
+// ── EXPORT / IMPORT ────────────────────────────────────────────────────────
+function exportData(){
+  var blob = new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'speechtrack_backup_'+todayStr()+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importData(){
+  var inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.json';
+  inp.onchange = function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        var imported = JSON.parse(ev.target.result);
+        if(!imported.patients) throw new Error('bad file');
+        db = imported;
+        save();
+        closeModal();
+        render();
+        alert('Data imported!');
+      }catch(err){ alert('Invalid backup file.'); }
+    };
+    reader.readAsText(file);
+  };
+  document.body.appendChild(inp);
+  inp.click();
+  document.body.removeChild(inp);
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────
+function setView(v){
+  currentView = v;
+  if(v==='patients') selectedPatient = null;
+  document.querySelectorAll('.bnav').forEach(function(b){ b.classList.remove('active'); });
+  var nb = el('bnav-'+v);
+  if(nb) nb.classList.add('active');
+  render();
+}
+
+function selectPatient(id){
+  selectedPatient = id;
+  currentTab = 'notes';
+  render();
+}
+
+function setTab(t){ currentTab = t; render(); }
+
+function handleAdd(){
+  if(currentView==='reminders'){ showAddReminderGlobal(); return; }
+  if(currentView==='payments'){ showAddPaymentGlobal(); return; }
+  if(selectedPatient===null){ showAddPatient(); return; }
+  if(currentTab==='notes') showAddNote();
+  else if(currentTab==='reminders') showAddReminder();
+  else if(currentTab==='treatment') showAddGoal();
+  else if(currentTab==='payments') showAddPayment();
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function render(){
+  var c = el('main-content');
+  var lbl = el('add-label');
+  var addBtn = el('add-btn');
+  addBtn.style.display = '';
+  if(currentView==='patients'){
+    if(selectedPatient!==null){
+      var p = getPatient(selectedPatient);
+      if(!p){ selectedPatient=null; render(); return; }
+      var labels = {notes:'Note',reminders:'Reminder',treatment:'Goal',documents:'',payments:'Payment'};
+      lbl.textContent = labels[currentTab]||'';
+      addBtn.style.display = currentTab==='documents'?'none':'';
+      c.innerHTML = renderDetail(p);
+    } else {
+      lbl.textContent = 'Patient';
+      c.innerHTML = renderList();
+    }
+  } else if(currentView==='reminders'){
+    lbl.textContent = 'Reminder';
+    c.innerHTML = renderRemindersView();
+  } else if(currentView==='payments'){
+    lbl.textContent = 'Invoice';
+    c.innerHTML = renderPaymentsView();
+  }
+}
+
+function getPatient(id){
+  for(var i=0;i<db.patients.length;i++){ if(db.patients[i].id===id) return db.patients[i]; }
+  return null;
+}
+function getPatientIndex(id){
+  for(var i=0;i<db.patients.length;i++){ if(db.patients[i].id===id) return i; }
+  return 0;
+}
+
+// ── PATIENT LIST ───────────────────────────────────────────────────────────
+function renderList(){
+  if(!db.patients.length) return '<div class="empty"><div style="font-size:44px;margin-bottom:14px">👩‍⚕️</div><div style="font-size:16px;font-weight:600;margin-bottom:6px">No patients yet</div><div style="font-size:13px">Tap + Patient to get started</div></div>';
+  var cards = db.patients.map(function(p,i){
+    var cur = p.currency||'EUR';
+    var curClass = cur==='EUR'?'bg':cur==='USD'?'bb':'ba';
+    var stClass = p.status==='active'?'bg':p.status==='review'?'ba':'bgr';
+    return '<div class="pcard" onclick="selectPatient(\''+p.id+'\')">'
+      +'<div class="av '+avc(i)+'" style="width:42px;height:42px;font-size:13px;margin-bottom:8px">'+initials(p.name)+'</div>'
+      +'<div style="font-size:13px;font-weight:600;margin-bottom:2px">'+escHtml(p.name)+'</div>'
+      +'<div style="font-size:11px;color:var(--text2)">'+(p.dob?('Age '+calcAge(p.dob)):'Age —')+'</div>'
+      +'<div style="font-size:11px;color:var(--text2)">'+(p.sessions||0)+' sessions</div>'
+      +(p.nextSession?'<div style="font-size:11px;color:var(--text2)">Next: '+p.nextSession+'</div>':'')
+      +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">'
+      +'<span class="badge '+stClass+'">'+(p.status||'active')+'</span>'
+      +'<span class="badge '+curClass+'">'+cur+'</span>'
+      +'</div></div>';
+  }).join('');
+
+  var allRems = [];
+  db.patients.forEach(function(p){
+    (p.reminders||[]).forEach(function(r){ allRems.push({text:r.text,due:r.due,urgency:r.urgency,pname:p.name,pid:p.id}); });
+  });
+  var remHtml = allRems.slice(0,5).map(function(r){
+    var dc = r.urgency==='red'?'rdr':r.urgency==='amber'?'rda':'rdg';
+    return '<div class="rem-item"><div class="rdot '+dc+'"></div>'
+      +'<div style="flex:1"><div style="font-size:13px">'+escHtml(r.text)+'</div>'
+      +(r.due?'<div style="font-size:11px;color:var(--text3)">'+escHtml(r.pname)+' · Due '+r.due+'</div>':'<div style="font-size:11px;color:var(--text3)">'+escHtml(r.pname)+'</div>')
+      +'</div></div>';
+  }).join('');
+
+  return '<div class="patient-grid">'+cards+'</div>'
+    +'<div class="sec">Upcoming reminders</div>'
+    +'<div class="card" style="padding:10px 14px">'+(remHtml||'<div style="color:var(--text3);font-size:13px;padding:8px 0">No reminders</div>')+'</div>';
+}
+
+// ── PATIENT DETAIL ─────────────────────────────────────────────────────────
+function renderDetail(p){
+  var idx = getPatientIndex(p.id);
+  var tabs = ['notes','reminders','treatment','documents','payments'];
+  var tabBar = '<div class="tab-bar">'+tabs.map(function(t){
+    return '<button class="tab'+(currentTab===t?' active':'')+'" onclick="setTab(\''+t+'\')">'+t.charAt(0).toUpperCase()+t.slice(1)+'</button>';
+  }).join('')+'</div>';
+
+  var body = '';
+  if(currentTab==='notes') body = renderNotes(p);
+  else if(currentTab==='reminders') body = renderReminders(p);
+  else if(currentTab==='treatment') body = renderTreatment(p);
+  else if(currentTab==='documents') body = renderDocuments(p);
+  else if(currentTab==='payments') body = renderPayments(p);
+
+  var cur = p.currency||'EUR';
+  var curClass = cur==='EUR'?'bg':cur==='USD'?'bb':'ba';
+  var stClass = p.status==='active'?'bg':p.status==='review'?'ba':'bgr';
+  return '<button class="btn sm" onclick="selectedPatient=null;render()" style="margin-bottom:12px">← All patients</button>'
+    +'<div class="ph">'
+    +'<div class="av '+avc(idx)+'" style="width:46px;height:46px;font-size:15px;margin:0">'+initials(p.name)+'</div>'
+    +'<div style="flex:1;min-width:0">'
+    +'<div style="font-size:16px;font-weight:700">'+escHtml(p.name)+'</div>'
+    +'<div style="font-size:12px;color:var(--text2)">'+escHtml(p.diagnosis||'No diagnosis')+(p.dob?(' · Age '+calcAge(p.dob)):'')+'</div>'
+    +'<div style="font-size:12px;color:var(--text2)">'+(p.sessions||0)+' sessions'+(p.nextSession?' · Next: '+p.nextSession:'')+'</div>'
+    +'<div style="margin-top:4px;display:flex;gap:4px"><span class="badge '+stClass+'">'+(p.status||'active')+'</span><span class="badge '+curClass+'">'+cur+'</span></div>'
+    +'</div>'
+    +'<button class="btn icon" onclick="showEditPatient(\''+p.id+'\')" title="Edit">✏️</button>'
+    +'</div>'
+    +tabBar+body;
+}
+
+function renderNotes(p){
+  var notes = (p.notes||[]).slice().reverse();
+  var html = notes.length ? notes.map(function(n){
+    var tags = (n.tags||[]).map(function(t){ return '<span class="tag">'+escHtml(t)+'</span>'; }).join('');
+    return '<div class="note-item">'
+      +'<div class="note-date">'+n.date+(n.type?' · <span class="badge bgr" style="font-size:10px">'+n.type+'</span>':'')+'</div>'
+      +'<div class="note-body">'+escHtml(n.text)+'</div>'
+      +(n.homework?'<div style="margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:8px;border-left:3px solid var(--amber-mid)"><div style="font-size:11px;font-weight:700;color:var(--amber-dark);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">🏠 Homework</div><div style="font-size:13px;white-space:pre-wrap">'+escHtml(n.homework)+'</div></div>':'')
+      +(n.nextPlan?'<div style="margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:8px;border-left:3px solid var(--green)"><div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">📅 Next session plan</div><div style="font-size:13px;white-space:pre-wrap">'+escHtml(n.nextPlan)+'</div></div>':'')
+      +(tags?'<div class="tags" style="margin-top:8px;margin-bottom:8px">'+tags+'</div>':'')
+      +'<button class="btn sm danger" style="margin-top:8px" onclick="deleteNote(\''+p.id+'\',\''+n.id+'\')">Delete</button>'
+      +'</div>';
+  }).join('') : '<div style="color:var(--text3);font-size:13px;padding:8px 0">No notes yet. Tap + Note to add one.</div>';
+  return '<div class="card">'+html+'</div>';
+}
+
+function renderReminders(p){
+  var rems = p.reminders||[];
+  var html = rems.length ? rems.map(function(r){
+    var dc = r.urgency==='red'?'rdr':r.urgency==='amber'?'rda':'rdg';
+    return '<div class="rem-item"><div class="rdot '+dc+'"></div>'
+      +'<div style="flex:1"><div style="font-size:14px">'+escHtml(r.text)+'</div>'
+      +(r.due?'<div style="font-size:11px;color:var(--text3);margin-top:2px">Due '+r.due+'</div>':'')
+      +'</div>'
+      +'<button class="btn sm danger" onclick="deleteReminder(\''+p.id+'\',\''+r.id+'\')">✕</button>'
+      +'</div>';
+  }).join('') : '<div style="color:var(--text3);font-size:13px;padding:8px 0">No reminders. Tap + Reminder to add one.</div>';
+  return '<div class="card">'+html+'</div>';
+}
+
+function renderTreatment(p){
+  var goals = p.treatment||[];
+  var html = goals.length ? goals.map(function(g){
+    return '<div class="goal-item">'
+      +'<div class="gcheck'+(g.done?' done':'')+'" onclick="toggleGoal(\''+p.id+'\',\''+g.id+'\')">'+(g.done?'✓':'')+'</div>'
+      +'<div style="flex:1">'+escHtml(g.goal)+'</div>'
+      +'<button class="btn sm danger" onclick="deleteGoal(\''+p.id+'\',\''+g.id+'\')">✕</button>'
+      +'</div>';
+  }).join('') : '<div style="color:var(--text3);font-size:13px;padding:8px 0">No goals yet. Tap + Goal to add one.</div>';
+  return '<div class="card">'+(p.diagnosis?'<div style="font-size:12px;color:var(--text2);margin-bottom:10px">Diagnosis: '+escHtml(p.diagnosis)+'</div>':'')+html+'</div>';
+}
+
+function renderDocuments(p){
+  var docs = p.docs||[];
+  var html = docs.length ? docs.map(function(d){
+    var isPdf = d.type==='pdf';
+    return '<div class="doc-item">'
+      +'<div class="doc-icon" style="background:'+(isPdf?'var(--red-light)':'var(--blue-light)')+';color:'+(isPdf?'var(--red-dark)':'var(--blue-dark)')+'">'+( isPdf?'📄':'🖼')+'</div>'
+      +'<div style="flex:1;font-size:13px;word-break:break-word">'+escHtml(d.name)+'</div>'
+      +'<button class="btn sm danger" onclick="deleteDoc(\''+p.id+'\',\''+d.id+'\')">✕</button>'
+      +'</div>';
+  }).join('') : '<div style="color:var(--text3);font-size:13px;margin-bottom:10px">No documents yet.</div>';
+  return '<div class="card">'+html
+    +'<div class="action-row">'
+    +'<button class="btn" onclick="addDoc(\''+p.id+'\',\'pdf\')">+ PDF report</button>'
+    +'<button class="btn" onclick="addDoc(\''+p.id+'\',\'img\')">+ Image</button>'
+    +'</div></div>';
+}
+
+function renderPayments(p){
+  var pays = p.payments||[];
+  var cur = p.currency||'EUR';
+  var paid = 0, out = 0;
+  pays.forEach(function(py){ if(py.status==='paid') paid+=Number(py.amount); else out+=Number(py.amount); });
+  var currOpts = CURRENCIES.map(function(c){ return '<option value="'+c+'"'+(c===cur?' selected':'')+'>'+c+'</option>'; }).join('');
+  var rows = pays.slice().reverse().map(function(py){
+    var sc = py.status==='paid'?'bg':py.status==='pending'?'ba':'br';
+    return '<div class="pay-item">'
+      +'<div class="pay-top"><span style="font-size:14px;font-weight:600">'+escHtml(py.desc||'Session')+'</span><span style="font-size:16px;font-weight:700">'+fmt(py.amount,cur)+'</span></div>'
+      +'<div class="pay-sub"><span style="font-size:11px;color:var(--text3)">'+py.date+'</span>'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+      +'<span class="badge '+sc+'">'+py.status+'</span>'
+      +'<button class="btn sm" onclick="togglePayStatus(\''+p.id+'\',\''+py.id+'\')">'+(py.status==='paid'?'Mark unpaid':'Mark paid')+'</button>'
+      +'<button class="btn sm danger" onclick="deletePayment(\''+p.id+'\',\''+py.id+'\')">✕</button>'
+      +'</div></div></div>';
+  }).join('');
+  return '<div class="metrics">'
+    +'<div class="metric"><div class="metric-label">Paid</div><div class="metric-val" style="color:var(--green)">'+fmt(paid,cur)+'</div></div>'
+    +'<div class="metric"><div class="metric-label">Outstanding</div><div class="metric-val" style="color:var(--amber-mid)">'+fmt(out,cur)+'</div></div>'
+    +'</div>'
+    +'<div class="card"><h3>Payments '
+    +'<span style="margin-left:auto;font-weight:400;font-size:12px">Currency: '
+    +'<select onchange="setCurrency(\''+p.id+'\',this.value)" style="width:auto;padding:4px 8px;font-size:12px">'+currOpts+'</select>'
+    +'</span></h3>'
+    +(rows||'<div style="color:var(--text3);font-size:13px;padding:8px 0">No payments yet.</div>')
+    +'</div>';
+}
+
+// ── REMINDERS VIEW ─────────────────────────────────────────────────────────
+function renderRemindersView(){
+  var all = [];
+  db.patients.forEach(function(p){
+    (p.reminders||[]).forEach(function(r){ all.push({text:r.text,due:r.due,urgency:r.urgency||'green',pname:p.name,pid:p.id}); });
+  });
+  if(!all.length) return '<div class="empty">No reminders yet</div>';
+  var groups = {red:[],amber:[],green:[]};
+  all.forEach(function(r){ (groups[r.urgency]||groups.green).push(r); });
+  var labels = {red:'Urgent',amber:'This week',green:'Upcoming'};
+  var html = '';
+  ['red','amber','green'].forEach(function(u){
+    if(!groups[u].length) return;
+    var dc = u==='red'?'rdr':u==='amber'?'rda':'rdg';
+    html += '<div class="sec">'+labels[u]+'</div><div class="card">'
+      +groups[u].map(function(r){
+        return '<div class="rem-item"><div class="rdot '+dc+'"></div>'
+          +'<div style="flex:1"><div style="font-size:14px">'+escHtml(r.text)+'</div>'
+          +'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+escHtml(r.pname)+(r.due?' · Due '+r.due:'')+'</div></div>'
+          +'<button class="btn sm" onclick="selectPatient(\''+r.pid+'\');currentTab=\'reminders\';render()">View</button>'
+          +'</div>';
+      }).join('')+'</div>';
+  });
+  return html;
+}
+
+// ── PAYMENTS VIEW ──────────────────────────────────────────────────────────
+function renderPaymentsView(){
+  var byCur = {};
+  db.patients.forEach(function(p){
+    var c = p.currency||'EUR';
+    if(!byCur[c]) byCur[c]={paid:0,out:0};
+    (p.payments||[]).forEach(function(py){
+      if(py.status==='paid') byCur[c].paid+=Number(py.amount);
+      else byCur[c].out+=Number(py.amount);
+    });
+  });
+  var summaries = Object.keys(byCur).map(function(c){
+    var v = byCur[c];
+    var cc = c==='EUR'?'bg':c==='USD'?'bb':'ba';
+    return '<div class="card" style="margin-bottom:10px"><h3><span class="badge '+cc+'">'+c+'</span> <span style="font-weight:400;font-size:12px;color:var(--text2)">Summary</span></h3>'
+      +'<div class="metrics" style="margin-bottom:0">'
+      +'<div class="metric"><div class="metric-label">Paid</div><div class="metric-val" style="color:var(--green);font-size:16px">'+fmt(v.paid,c)+'</div></div>'
+      +'<div class="metric"><div class="metric-label">Outstanding</div><div class="metric-val" style="color:var(--amber-mid);font-size:16px">'+fmt(v.out,c)+'</div></div>'
+      +'</div></div>';
+  }).join('');
+
+  var allPays = [];
+  db.patients.forEach(function(p,i){
+    (p.payments||[]).forEach(function(py){
+      allPays.push({desc:py.desc,date:py.date,amount:py.amount,status:py.status,pname:p.name,pid:p.id,pidx:i,cur:p.currency||'EUR'});
+    });
+  });
+  allPays.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  var rows = allPays.map(function(py){
+    var sc = py.status==='paid'?'bg':py.status==='pending'?'ba':'br';
+    var cc = py.cur==='EUR'?'bg':py.cur==='USD'?'bb':'ba';
+    return '<div class="pay-item">'
+      +'<div class="pay-top">'
+      +'<span style="display:flex;align-items:center;gap:8px">'
+      +'<div class="av '+avc(py.pidx)+'" style="width:24px;height:24px;font-size:9px;margin:0;min-width:24px">'+initials(py.pname)+'</div>'
+      +'<span style="font-size:13px">'+escHtml(py.pname)+' · '+escHtml(py.desc||'Session')+'</span>'
+      +'</span><span style="font-weight:700">'+fmt(py.amount,py.cur)+'</span></div>'
+      +'<div class="pay-sub"><span style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px">'+py.date+' <span class="badge '+cc+'">'+py.cur+'</span></span>'
+      +'<span class="badge '+sc+'">'+py.status+'</span></div></div>';
+  }).join('');
+
+  return summaries+'<div class="sec">All transactions</div><div class="card">'+(rows||'<div style="color:var(--text3);font-size:13px;padding:8px 0">No transactions yet</div>')+'</div>';
+}
+
+// ── MODALS ─────────────────────────────────────────────────────────────────
+function showModal(html){
+  el('modal-root').innerHTML = '<div class="modal-bg" id="modal-bg"><div class="modal">'+html+'</div></div>';
+  el('modal-bg').addEventListener('click', function(e){ if(e.target.id==='modal-bg') closeModal(); });
+}
+function closeModal(){ el('modal-root').innerHTML = ''; }
+
+function calcAge(dob){
+  if(!dob) return '';
+  var b = new Date(dob);
+  if(isNaN(b.getTime())) return '';
+  var today = new Date();
+  var years = today.getFullYear() - b.getFullYear();
+  var months = today.getMonth() - b.getMonth();
+  if(today.getDate() < b.getDate()) months--;
+  if(months < 0){ years--; months += 12; }
+  if(years < 0) return '';
+  var decimal = Math.round(months/12*10)/10;
+  var age = years + decimal;
+  return age.toFixed(1).replace(/\.0$/,'.0');
+}
+function updateAgeDisplay(dobId, outId){
+  var dob = el(dobId).value;
+  var age = calcAge(dob);
+  el(outId).textContent = age!==''? age+' years old' : '—';
+}
+
+function showAddPatient(){
+  showModal('<h2>New patient</h2>'
+    +'<div class="form-row"><label>Full name *</label><input type="text" id="m-name" placeholder="e.g. Sara Mitchell" autocomplete="name"></div>'
+    +'<div class="form-row"><label>Date of birth</label><input type="date" id="m-dob" oninput="updateAgeDisplay(\'m-dob\',\'m-age-display\')" max="'+todayStr()+'"><div style="font-size:12px;color:var(--text2);margin-top:6px" id="m-age-display">—</div></div>'
+    +'<div class="form-row"><label>Diagnosis</label><input type="text" id="m-diag" placeholder="e.g. Articulation disorder"></div>'
+    +'<div class="form-row"><label>Next session date</label><input type="date" id="m-next" value="'+todayStr()+'"></div>'
+    +'<div class="form-row"><label>Currency</label><select id="m-cur">'+CURRENCIES.map(function(c){return '<option>'+c+'</option>';}).join('')+'</select></div>'
+    +'<div class="form-row"><label>Status</label><select id="m-status"><option value="active">Active</option><option value="review">Under review</option><option value="inactive">Inactive</option></select></div>'
+    +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="addPatient()">Add patient</button></div>');
+}
+
+function addPatient(){
+  var name = el('m-name').value.trim();
+  if(!name){ alert('Please enter a name.'); return; }
+  var dob = el('m-dob').value||'';
+  db.patients.push({
+    id:uid(), name:name, dob:dob,
+    diagnosis:el('m-diag').value||'', nextSession:el('m-next').value||'',
+    currency:el('m-cur').value, status:el('m-status').value,
+    sessions:0, notes:[], reminders:[], treatment:[], docs:[], payments:[]
+  });
+  save(); closeModal(); render();
+}
+
+function showEditPatient(pid){
+  var p = getPatient(pid);
+  if(!p) return;
+  var dob = p.dob||'';
+  var ageTxt = dob ? calcAge(dob)+' years old' : '—';
+  showModal('<h2>Edit patient</h2>'
+    +'<div class="form-row"><label>Full name</label><input type="text" id="m-name" value="'+escAttr(p.name)+'"></div>'
+    +'<div class="form-row"><label>Date of birth</label><input type="date" id="m-dob" value="'+dob+'" oninput="updateAgeDisplay(\'m-dob\',\'m-age-display\')" max="'+todayStr()+'"><div style="font-size:12px;color:var(--text2);margin-top:6px" id="m-age-display">'+ageTxt+'</div></div>'
+    +'<div class="form-row"><label>Diagnosis</label><input type="text" id="m-diag" value="'+escAttr(p.diagnosis||'')+'"></div>'
+    +'<div class="form-row"><label>Next session</label><input type="date" id="m-next" value="'+(p.nextSession||todayStr())+'"></div>'
+    +'<div class="form-row"><label>Sessions count</label><input type="number" id="m-sess" value="'+(p.sessions||0)+'"></div>'
+    +'<div class="form-row"><label>Currency</label><select id="m-cur">'+CURRENCIES.map(function(c){return '<option value="'+c+'"'+(c===p.currency?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'
+    +'<div class="form-row"><label>Status</label><select id="m-status"><option value="active"'+(p.status==='active'?' selected':'')+'>Active</option><option value="review"'+(p.status==='review'?' selected':'')+'>Under review</option><option value="inactive"'+(p.status==='inactive'?' selected':'')+'>Inactive</option></select></div>'
+    +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="editPatient(\''+pid+'\')">Save</button></div>'
+    +'<div style="margin-top:14px;border-top:0.5px solid var(--border);padding-top:14px"><button class="btn danger full" onclick="deletePatient(\''+pid+'\')">Delete patient</button></div>');
+}
+
+function editPatient(pid){
+  var p = getPatient(pid);
+  if(!p) return;
+  p.name = el('m-name').value.trim()||p.name;
+  p.dob = el('m-dob').value;
+  p.diagnosis = el('m-diag').value;
+  p.nextSession = el('m-next').value;
+  p.sessions = Number(el('m-sess').value)||0;
+  p.currency = el('m-cur').value;
+  p.status = el('m-status').value;
+  save(); closeModal(); render();
+}
+
+function deletePatient(pid){
+  if(!confirm('Delete this patient and all their records? This cannot be undone.')) return;
+  db.patients = db.patients.filter(function(p){ return p.id!==pid; });
+  selectedPatient = null;
+  save(); closeModal(); render();
+}
+
+function showAddNote(){
+  showModal('<h2>New session note</h2>'
+    +'<div class="form-row"><label>Date</label><input type="date" id="m-date" value="'+todayStr()+'"></div>'
+    +'<div class="form-row"><label>Note type</label><select id="m-type"><option value="">General</option><option value="Assessment">Assessment</option><option value="Therapy">Therapy session</option><option value="Parent consult">Parent consultation</option><option value="Review">Progress review</option></select></div>'
+    +'<div class="form-row"><label>Clinical notes *</label><textarea id="m-text" placeholder="Activities, observations, progress, goals worked on…"></textarea></div>'
+    +'<div class="form-row"><label>Homework</label><textarea id="m-homework" placeholder="Exercises or practice for the patient/parent to do at home…"></textarea></div>'
+    +'<div class="form-row"><label>Plan for next session</label><textarea id="m-nextplan" placeholder="What to focus on or prepare for next time…"></textarea></div>'
+    +'<div class="form-row"><label>Tags (comma separated)</label><input type="text" id="m-tags" placeholder="e.g. articulation, /r/ blends"></div>'
+    +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="addNote()">Save note</button></div>');
+}
+
+function addNote(){
+  var text = el('m-text').value.trim();
+  if(!text){ alert('Please enter your notes.'); return; }
+  var p = getPatient(selectedPatient);
+  if(!p) return;
+  if(!p.notes) p.notes = [];
+  var tagsRaw = el('m-tags').value.trim();
+  var tags = tagsRaw ? tagsRaw.split(',').map(function(t){return t.trim();}).filter(function(t){return t.length>0;}) : [];
+  p.notes.push({id:uid(), date:el('m-date').value, type:el('m-type').value, text:text, homework:el('m-homework').value.trim(), nextPlan:el('m-nextplan').value.trim(), tags:tags});
+  p.sessions = p.notes.length;
+  save(); closeModal(); render();
+}
+
+function deleteNote(pid, nid){
+  if(!confirm('Delete this note?')) return;
+  var p = getPatient(pid);
+  if(!p) return;
+  p.notes = p.notes.filter(function(n){return n.id!==nid;});
+  p.sessions = p.notes.length;
+  save(); render();
+}
+
+function showAddReminder(){
+  showModal('<h2>Add reminder</h2>'
+    +'<div class="form-row"><label>Reminder *</label><input type="text" id="m-text" placeholder="e.g. Prepare /r/ blend word list"></div>'
+    +'<div class="form-row"><label>Due date</label><input type="date" id="m-due" value="'+todayStr()+'"></div>'
+    +'<div class="form-row"><label>Priority</label><select id="m-urg"><option value="green">Upcoming</option><option value="amber">This week</option><option value="red">Urgent</option></select></div>'
+    +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="addReminder()">Add reminder</button></div>');
+}
+
+function addReminder(){
+  var text = el('m-text').value.trim();
+  if(!text){ alert('Please enter a reminder.'); return; }
+  var p = getPatient(selectedPatient);
+  if(!p) return;
+  if(!p.reminders) p.reminders = [];
+  p.reminders.push({id:uid(), text:text, due:el('m-due').value, urgency:el('m-urg').value});
+  save(); closeModal(); render();
+}
+
+function deleteReminder(pid, rid){
+  var p = getPatient(pid);
+  if(!p) return;
+  p.reminders = p.reminders.filter(function(r){return r.id!==rid;});
+  save(); render();
+}
+
+function showAddReminderGlobal(){
+  if(!db.patients.length){ alert('Add a patient first.'); return; }
+  showModal('<h2>Add reminder</h2>'
+    +'<div class="form-row"><label>Patient</label><select id="m-pid">'+db.patients.map(function(p){return '<option value="'+p.id+'">'+escHtml(p.name)+'</option>';}).join('')+'</select></div>'
+    +'<div class="form-row"><label>Reminder *</label><input type="text" id="m-text" placeholder="e.g. Prepare materials"></div>'
+    +'<div class="form-row"><label>Due date</label><input type="date" id="m-due" value="'+todayStr()+'"></div>'
+    +'<div class="form-row"><label>Priority</label><select id="m-urg"><option value="green">Upcoming</option><option value="amber">This week</option><option value="red">Urgent</option></select></div>'
+    +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="addReminderGlobal()">Add reminder</button></div>');
+}
+
+function addReminderGlobal(){
+  var text = el('m-text').value.trim();
+  if(!text){ alert('Please enter a reminder.'); return; }
+  var pid = el('m-pid').value;
+  var p = getPatient(pid);
+  if(!p) return;
+  if(!p.reminders) p.reminders = [];
+  p.reminders.push({id:uid(), text:text, due:el('m-due').value, urgency:el('m-urg').value});
+  save(); closeModal(); render();
+}
+
+function showAddGoal(){
+  showModal('<h2>Add treatment goal</h2>'
+    +'<div class="form-row"><label>Goal *</label><textarea id="m-goal" placeholder="e.g. Produce /r/ in word-initial position with 80% accuracy in structured tasks"></textarea></div>'
+    +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="addGoal()">Add goal</button></div>');
+}
+
+function addGoal(){
+  var goal = el('m-goal').value.trim();
+  if(!goal){ alert('Please enter a goal.'); return; }
+  var p = getPatient(selectedPatient);
+  if(!p) return;
+  if(!p.treatment) p.treatment = [];
+  p.treatment.push({id:uid(), goal:goal, done:false});
+  save(); closeModal(); render();
+}
+
+function toggleGoal(pid, gid){
+  var p = getPatient(pid);
+  if(!p) return;
+  var g = null;
+  for(var i=0;i<p.treatment.length;i++){ if(p.treatment[i].id===gid){ g=p.treatment[i]; break; } }
+  if(g){ g.done = !g.done; save(); render(); }
+}
+
+function deleteGoal(pid, gid){
+  var p = getPatient(pid);
+  if(!p) return;
+  p.treatment = p.treatment.filter(function(g){return g.id!==gid;});
+  save(); render();
+}
+
+function addDoc(pid, type){
+  var name = prompt('Enter '+( type==='pdf'?'document':'image')+' name (e.g. Assessment report Jan 2026):');
+  if(!name||!name.trim()) return;
+  var p = getPatient(pid);
+  if(!p) return;
+  if(!p.docs) p.docs = [];
+  p.docs.push({id:uid(), name:name.trim(), type:type});
+  save(); render();
+}
+
+function deleteDoc(pid, did){
+  if(!confirm('Remove this document?')) return;
+  var p = getPatient(pid);
+  if(!p) return;
+  p.docs = p.docs.filter(function(d){return d.id!==did;});
+  save(); render();
+}
+
+function showAddPayment(){
+  var p = getPatient(selectedPatient);
+  if(!p) return;
+  showModal('<h2>Add payment</h2>'
+    +'<div class="form-row"><label>Description</label><input type="text" id="m-desc" placeholder="e.g. Session #13"></div>'
+    +'<div class="form-row"><label>Amount ('+(p.currency||'EUR')+') *</label><input type="number" id="m-amt" placeholder="65" min="0" step="0.01"></div>'
+    +'<div class="form-row"><label>Date</label><input type="date" id="m-date" value="'+todayStr()+'"></div>'
+    +'<div class="form-row"><label>Status</label><select id="m-status"><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option></select></div>'
+    +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="addPayment()">Add payment</button></div>');
+}
+
+function addPayment(){
+  var amt = el('m-amt').value;
+  if(!amt){ alert('Please enter an amount.'); return; }
+  var p = getPatient(selectedPatient);
+  if(!p) return;
+  if(!p.payments) p.payments = [];
+  p.payments.push({id:uid(), desc:el('m-desc').value||'Session', amount:Number(amt), date:el('m-date').value, status:el('m-status').value});
+  save(); closeModal(); render();
+}
+
+function showAddPaymentGlobal(){
+  if(!db.patients.length){ alert('Add a patient first.'); return; }
+  showModal('<h2>Add payment</h2>'
+    +'<div class="form-row"><label>Patient</label><select id="m-pid">'+db.patients.map(function(p){return '<option value="'+p.id+'">'+escHtml(p.name)+' ('+( p.currency||'EUR')+')</option>';}).join('')+'</select></div>'
+    +'<div class="form-row"><label>Description</label><input type="text" id="m-desc" placeholder="e.g. Session #1"></div>'
+    +'<div class="form-row"><label>Amount *</label><input type="number" id="m-amt" placeholder="65" min="0" step="0.01"></div>'
+    +'<div class="form-row"><label>Date</label><input type="date" id="m-date" value="'+todayStr()+'"></div>'
+    +'<div class="form-row"><label>Status</label><select id="m-status"><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option></select></div>'
+    +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="addPaymentGlobal()">Add</button></div>');
+}
+
+function addPaymentGlobal(){
+  var amt = el('m-amt').value;
+  if(!amt){ alert('Please enter an amount.'); return; }
+  var pid = el('m-pid').value;
+  var p = getPatient(pid);
+  if(!p) return;
+  if(!p.payments) p.payments = [];
+  p.payments.push({id:uid(), desc:el('m-desc').value||'Session', amount:Number(amt), date:el('m-date').value, status:el('m-status').value});
+  save(); closeModal(); render();
+}
+
+function togglePayStatus(pid, pyid){
+  var p = getPatient(pid);
+  if(!p) return;
+  for(var i=0;i<p.payments.length;i++){
+    if(p.payments[i].id===pyid){ p.payments[i].status = p.payments[i].status==='paid'?'pending':'paid'; break; }
+  }
+  save(); render();
+}
+
+function deletePayment(pid, pyid){
+  if(!confirm('Delete this payment?')) return;
+  var p = getPatient(pid);
+  if(!p) return;
+  p.payments = p.payments.filter(function(x){return x.id!==pyid;});
+  save(); render();
+}
+
+function setCurrency(pid, val){
+  var p = getPatient(pid);
+  if(!p) return;
+  p.currency = val;
+  save(); render();
+}
+
+// ── SYNC MODAL ─────────────────────────────────────────────────────────────
+function showSync(){
+  var isConn = syncStatus==='synced'||syncStatus==='syncing';
+  showModal('<h2>Data &amp; sync</h2>'
+    +'<div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6">'
+    +'Sync across your Mac, iPad and phone using Google Drive. Your data is stored privately in your own Google account.'
+    +'</div>'
+    +'<button class="btn primary full" onclick="closeModal();connectDrive()" style="margin-bottom:8px">'
+    +(isConn?'↻ Sync now':'🔗 Connect Google Drive')
+    +'</button>'
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:16px;text-align:center">Requires a one-time Google API key setup (5 min)</div>'
+    +'<div class="divider"></div>'
+    +'<div style="font-size:13px;font-weight:600;margin:14px 0 10px">Manual backup</div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:6px">'
+    +'<button class="btn" style="flex:1;justify-content:center" onclick="closeModal();exportData()">⬇ Export backup</button>'
+    +'<button class="btn" style="flex:1;justify-content:center" onclick="closeModal();importData()">⬆ Import backup</button>'
+    +'</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:16px">Always export before receiving app updates.</div>'
+    +'<div class="divider"></div>'
+    +'<button class="btn danger full" style="margin-top:14px" onclick="if(confirm(\'Delete ALL data? Cannot be undone.\')){db={patients:[],version:1};save();closeModal();render()}">🗑 Delete all data</button>'
+    +'<button class="btn full" style="margin-top:10px" onclick="closeModal()">Close</button>');
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function escHtml(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+loadLocal();
+render();
+// Welcome modal on first open
+if(!localStorage.getItem('st_welcome')){
+  localStorage.setItem('st_welcome','1');
+  setTimeout(function(){
+    showModal('<h2>Welcome to SpeechTrack 👋</h2>'
+      +'<div style="font-size:14px;line-height:1.7;color:var(--text2);margin-bottom:16px">'
+      +'Your data saves automatically on this device. To sync across your <strong>Mac, iPad and phone</strong>, tap the sync icon (↻) in the top right and connect Google Drive.'
+      +'<br><br>Use <strong>Export backup</strong> before any app updates to keep your data safe.'
+      +'</div>'
+      +'<button class="btn primary full" onclick="closeModal()">Let\'s start</button>');
+  }, 600);
+}
+</script>
+</body>
+</html>
